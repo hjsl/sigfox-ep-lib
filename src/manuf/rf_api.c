@@ -46,7 +46,7 @@
 
 #if (defined ASYNCHRONOUS) || (defined LOW_LEVEL_OPEN_CLOSE)
 /*******************************************************************/
-__weak RF_API_status_t RF_API_open(RF_API_config_t *rf_api_config) {
+RF_API_status_t RF_API_open(RF_API_config_t *rf_api_config) {
 	/* To be implemented by the device manufacturer */
 #ifdef ERROR_CODES
 	RF_API_status_t status = RF_API_SUCCESS;
@@ -57,7 +57,7 @@ __weak RF_API_status_t RF_API_open(RF_API_config_t *rf_api_config) {
 
 #ifdef LOW_LEVEL_OPEN_CLOSE
 /*******************************************************************/
-__weak RF_API_status_t RF_API_close(void) {
+RF_API_status_t RF_API_close(void) {
 	/* To be implemented by the device manufacturer */
 #ifdef ERROR_CODES
 	RF_API_status_t status = RF_API_SUCCESS;
@@ -68,7 +68,7 @@ __weak RF_API_status_t RF_API_close(void) {
 
 #ifdef ASYNCHRONOUS
 /*******************************************************************/
-__weak RF_API_status_t RF_API_process(void) {
+RF_API_status_t RF_API_process(void) {
 	/* To be implemented by the device manufacturer */
 #ifdef ERROR_CODES
 	RF_API_status_t status = RF_API_SUCCESS;
@@ -78,7 +78,7 @@ __weak RF_API_status_t RF_API_process(void) {
 #endif
 
 /*******************************************************************/
-__weak RF_API_status_t RF_API_wake_up(void) {
+RF_API_status_t RF_API_wake_up(void) {
 #ifdef ERROR_CODES
 	RF_API_status_t status = RF_API_SUCCESS;
 #endif
@@ -86,7 +86,7 @@ __weak RF_API_status_t RF_API_wake_up(void) {
 }
 
 /*******************************************************************/
-__weak RF_API_status_t RF_API_sleep(void) {
+RF_API_status_t RF_API_sleep(void) {
 	/* To be implemented by the device manufacturer */
 #ifdef ERROR_CODES
 	RF_API_status_t status = RF_API_SUCCESS;
@@ -95,7 +95,7 @@ __weak RF_API_status_t RF_API_sleep(void) {
 }
 
 /*******************************************************************/
-__weak RF_API_status_t RF_API_init(RF_API_radio_parameters_t *radio_parameters) {
+RF_API_status_t RF_API_init(RF_API_radio_parameters_t *radio_parameters) {
 	/* To be implemented by the device manufacturer */
 #ifdef ERROR_CODES
 	RF_API_status_t status = RF_API_SUCCESS;
@@ -104,7 +104,7 @@ __weak RF_API_status_t RF_API_init(RF_API_radio_parameters_t *radio_parameters) 
 }
 
 /*******************************************************************/
-__weak RF_API_status_t RF_API_de_init(void) {
+RF_API_status_t RF_API_de_init(void) {
 	/* To be implemented by the device manufacturer */
 #ifdef ERROR_CODES
 	RF_API_status_t status = RF_API_SUCCESS;
@@ -113,7 +113,7 @@ __weak RF_API_status_t RF_API_de_init(void) {
 }
 
 /*******************************************************************/
-__weak RF_API_status_t RF_API_send(RF_API_tx_data_t *tx_data) {
+RF_API_status_t RF_API_send(RF_API_tx_data_t *tx_data) {
 	/* To be implemented by the device manufacturer */
 #ifdef ERROR_CODES
 	RF_API_status_t status = RF_API_SUCCESS;
@@ -123,7 +123,7 @@ __weak RF_API_status_t RF_API_send(RF_API_tx_data_t *tx_data) {
 
 #ifdef BIDIRECTIONAL
 /*******************************************************************/
-__weak RF_API_status_t RF_API_receive(RF_API_rx_data_t *rx_data) {
+RF_API_status_t RF_API_receive(RF_API_rx_data_t *rx_data) {
 	/* To be implemented by the device manufacturer */
 #ifdef ERROR_CODES
 	RF_API_status_t status = RF_API_SUCCESS;
@@ -134,7 +134,7 @@ __weak RF_API_status_t RF_API_receive(RF_API_rx_data_t *rx_data) {
 
 #ifdef BIDIRECTIONAL
 /*******************************************************************/
-__weak RF_API_status_t RF_API_get_dl_phy_content_and_rssi(sfx_u8 *dl_phy_content, sfx_u8 dl_phy_content_size, sfx_s16 *dl_rssi_dbm) {
+RF_API_status_t RF_API_get_dl_phy_content_and_rssi(sfx_u8 *dl_phy_content, sfx_u8 dl_phy_content_size, sfx_s16 *dl_rssi_dbm) {
 	/* To be implemented by the device manufacturer */
 #ifdef ERROR_CODES
 	RF_API_status_t status = RF_API_SUCCESS;
@@ -145,7 +145,7 @@ __weak RF_API_status_t RF_API_get_dl_phy_content_and_rssi(sfx_u8 *dl_phy_content
 
 #if (defined REGULATORY) && (defined SPECTRUM_ACCESS_LBT)
 /*******************************************************************/
-__weak RF_API_status_t RF_API_carrier_sense(RF_API_carrier_sense_parameters_t *carrier_sense_params) {
+RF_API_status_t RF_API_carrier_sense(RF_API_carrier_sense_parameters_t *carrier_sense_params) {
 	/* To be implemented by the device manufacturer */
 #ifdef ERROR_CODES
 	RF_API_status_t status = RF_API_SUCCESS;
@@ -156,7 +156,7 @@ __weak RF_API_status_t RF_API_carrier_sense(RF_API_carrier_sense_parameters_t *c
 
 #if (defined TIMER_REQUIRED) && (defined LATENCY_COMPENSATION)
 /*******************************************************************/
-__weak RF_API_status_t RF_API_get_latency(RF_API_latency_t latency_type, sfx_u32 *latency_ms) {
+RF_API_status_t RF_API_get_latency(RF_API_latency_t latency_type, sfx_u32 *latency_ms) {
 	/* To be implemented by the device manufacturer */
 #ifdef ERROR_CODES
 	RF_API_status_t status = RF_API_SUCCESS;
@@ -167,7 +167,7 @@ __weak RF_API_status_t RF_API_get_latency(RF_API_latency_t latency_type, sfx_u32
 
 #ifdef CERTIFICATION
 /*******************************************************************/
-__weak RF_API_status_t RF_API_start_continuous_wave(void) {
+RF_API_status_t RF_API_start_continuous_wave(void) {
 	/* To be implemented by the device manufacturer */
 #ifdef ERROR_CODES
 	RF_API_status_t status = RF_API_SUCCESS;
@@ -178,7 +178,7 @@ __weak RF_API_status_t RF_API_start_continuous_wave(void) {
 
 #ifdef VERBOSE
 /*******************************************************************/
-__weak RF_API_status_t RF_API_get_version(sfx_u8 **version, sfx_u8 *version_size_char) {
+RF_API_status_t RF_API_get_version(sfx_u8 **version, sfx_u8 *version_size_char) {
 	/* To be implemented by the device manufacturer */
 #ifdef ERROR_CODES
 	RF_API_status_t status = RF_API_SUCCESS;
@@ -189,7 +189,7 @@ __weak RF_API_status_t RF_API_get_version(sfx_u8 **version, sfx_u8 *version_size
 
 #ifdef ERROR_CODES
 /*******************************************************************/
-__weak void RF_API_error(void) {
+void RF_API_error(void) {
 	/* To be implemented by the device manufacturer */
 }
 #endif
