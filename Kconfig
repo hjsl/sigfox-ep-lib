@@ -1,2 +1,104 @@
-config SIGFOX_EP_LIB
+config ZEPHYR_SIGFOX_EP_LIB_MODULE
+	bool
+
+config SIGFOX
 	bool "Enable Sigfox End-Point library"
+        depends on ZEPHYR_SIGFOX_EP_LIB_MODULE
+        help
+	  This option enables the Sigfox End-Point library.
+
+if SIGFOX
+config SIGFOX_BIDIRECTIONAL
+	bool "Support bidirectional procedure (downlink)."
+	help
+	  Support bidirectional procedure (downlink).
+	  Only applicable to application messages. Otherwise all
+	  messages will be uplink only.
+
+config SIGFOX_RC1
+	bool "Support radio configuration zone 1 (Europe, Middle-East and Africa)."
+	default y
+
+config SIGFOX_RC2
+	bool "Support radio configuration zone 2 (Brazil, Canada, Mexico, Puerto Rico and USA)."
+	default y
+
+config SIGFOX_RC3C
+	bool "Support radio configuration zone 3 (Japan) with LBT."
+	default y
+
+config SIGFOX_RC3D
+	bool "Support radio configuration zone 3 (Japan) with DC."
+	default y
+
+config SIGFOX_RC4
+	bool "Support radio configuration zone 4 (Latin America and Asia Pacific)."
+	default y
+
+config SIGFOX_RC5
+	bool "Support radio configuration zone 5 (South-Korea)."
+	default y
+
+config SIGFOX_RC6
+	bool "Support radio configuration zone 6 (India)."
+	default y
+
+config SIGFOX_RC7
+	bool "Support radio configuration zone 7 (Russia)."
+	default y
+
+config SIGFOX_APPLICATION_MESSAGES
+	bool "Support uplink application messages."
+	default y
+
+config SIGFOX_CONTROL_KEEP_ALIVE_MESSAGE
+	bool "Support uplink control keep alive message."
+	default y
+
+config SIGFOX_BIDIRECTIONAL
+	bool "Support bidirectional procedure (downlink). Only applicable to application messages."
+	default y
+	help 
+	  Support bidirectional procedure (downlink). Only applicable to application messages. Otherwise all messages will be uplink only.
+
+config SIGFOX_ASYNCHRONOUS
+	bool "Asynchronous mode, blocking mode otherwise."
+	default y
+
+config SIGFOX_LOW_LEVEL_OPEN_CLOSE
+	bool "Enable MCU and RF open/close functions."
+	default y
+
+config SIGFOX_REGULATORY
+	bool "Enable radio regulatory control (DC, FH or LBT check)."
+	default y
+
+config SIGFOX_LATENCY_COMPENSATION
+	bool "Enable radio latency compensation to improve MCU timers accuracy."
+	default y
+
+config SIGFOX_PARAMETERS_CHECK
+	bool "Enable parameters check."
+	default y
+
+config SIGFOX_CERTIFICATION
+	bool "Enable certification features."
+	default y
+
+config SIGFOX_PUBLIC_KEY_CAPABLE
+	bool "Enable public key switch feature."
+	default y
+
+config SIGFOX_VERBOSE
+	bool "Enable credentials (ID/PAC) API access and version control functions"
+	default y
+
+config SIGFOX_ERROR_CODES
+	bool "Use return codes if defined, otherwise all functions return void."
+	default y
+
+config SIGFOX_ERROR_STACK
+	int "Depth of the stack to store low level errors in."
+	default 32
+
+endif
