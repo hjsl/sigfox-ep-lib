@@ -1,3 +1,5 @@
+add_compile_definitions(USE_SIGFOX_EP_FLAGS_H)
+
 if (CONFIG_SIGFOX)
   zephyr_include_directories(inc)
   zephyr_sources(src/sigfox_ep_api.c)
@@ -9,3 +11,4 @@ if (CONFIG_SIGFOX)
   zephyr_sources(src/manuf/mcu_api.c)
   zephyr_sources(src/manuf/rf_api.c)
 endif()
+
