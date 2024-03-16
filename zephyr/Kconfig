@@ -1,2 +1,0 @@
-config SIGFOX_EP_LIB
-	bool "Enable Sigfox End-Point library"

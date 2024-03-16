@@ -1,4 +1,3 @@
-name: sigfox-ep-lib
-
 build:
+  cmake: .
   kconfig: Kconfig
