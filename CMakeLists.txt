@@ -10,4 +10,3 @@ if (CONFIG_SIGFOX)
   zephyr_sources(src/manuf/rf_api.c)
   zephyr_compile_definitions(USE_SIGFOX_EP_FLAGS_H)
 endif()
-

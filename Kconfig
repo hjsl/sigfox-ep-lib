@@ -1,6 +1,3 @@
-config ZEPHYR_SIGFOX_EP_LIB_MODULE
-	bool
-
 config SIGFOX
 	bool "Enable Sigfox End-Point library"
         depends on ZEPHYR_SIGFOX_EP_LIB_MODULE
