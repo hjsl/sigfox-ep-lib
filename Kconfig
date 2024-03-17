@@ -1,6 +1,7 @@
 config SIGFOX
 	bool "Enable Sigfox End-Point library"
         depends on ZEPHYR_SIGFOX_EP_LIB_MODULE
+	select SETTINGS
         help
 	  This option enables the Sigfox End-Point library.
 
