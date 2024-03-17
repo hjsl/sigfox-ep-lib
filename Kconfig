@@ -101,4 +101,14 @@ config SIGFOX_ERROR_STACK
 	int "Depth of the stack to store low level errors in."
 	default 32
 
+config SIGFOX_EP_ID
+	string "Endpoint identifier in hexadecimal string format."
+
+config SIGFOX_INITIAL_PAC
+	string "Initial PAC in hexadecimal string format."
+
+config SIGFOX_NAK
+	string "Network Access Key in hexadecimal string format."
+
+config
 endif
