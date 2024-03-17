@@ -108,5 +108,4 @@ config SIGFOX_INITIAL_PAC
 config SIGFOX_NAK
 	string "Network Access Key in hexadecimal string format."
 
-config
 endif
