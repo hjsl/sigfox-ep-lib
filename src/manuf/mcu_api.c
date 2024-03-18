@@ -35,12 +35,21 @@
  *******************************************************************/
 
 #include "manuf/mcu_api.h"
+#include "manuf/TI_aes_128_encr_only.h"
 
 #ifdef USE_SIGFOX_EP_FLAGS_H
 #include "sigfox_ep_flags.h"
 #endif
 #include "sigfox_types.h"
 #include "sigfox_error.h"
+
+#include <zephyr/kernel.h>
+#include <zephyr/sys/util.h>
+#include <string.h>
+
+#define EP_ID CONFIG_SIGFOX_EP_ID
+#define INITIAL_PAC CONFIG_SIGFOX_INITIAL_PAC
+#define NAK CONFIG_SIGFOX_NAK
 
 /*** MCU API functions ***/
 
@@ -80,10 +89,13 @@ MCU_API_status_t MCU_API_process(void) {
 #ifdef TIMER_REQUIRED
 /*******************************************************************/
 MCU_API_status_t MCU_API_timer_start(MCU_API_timer_t *timer) {
-	/* To be implemented by the device manufacturer */
 #ifdef ERROR_CODES
 	MCU_API_status_t status = MCU_API_SUCCESS;
 #endif
+	//printk("sleep start\n");
+	//k_sleep(K_MSEC(timer->duration_ms));
+	//printk("slep done\n");
+
 	RETURN();
 }
 #endif
@@ -127,6 +139,23 @@ MCU_API_status_t MCU_API_aes_128_cbc_encrypt(MCU_API_encryption_data_t *aes_data
 #ifdef ERROR_CODES
 	MCU_API_status_t status = MCU_API_SUCCESS;
 #endif
+
+	uint8_t nak[SIGFOX_EP_KEY_SIZE_BYTES];
+        size_t len = hex2bin(NAK, strlen(NAK), nak, sizeof(nak));
+        if (len == 0) {
+                status = MCU_API_ERROR;
+        }
+
+#ifdef PUBLIC_KEY_CAPABLE
+    if (aes_data->key == SIGFOX_EP_KEY_PRIVATE) {
+        aes_encrypt(aes_data->data, (sfx_u8 *)nak);
+    } else if ((aes_data->key == SIGFOX_EP_KEY_PUBLIC)) {
+        aes_encrypt(aes_data->data, (sfx_u8 *)SIGFOX_EP_PUBLIC_KEY);
+    }
+#else
+    aes_encrypt(aes_data->data, (sfx_u8 *)nak);
+#endif
+
 	RETURN();
 }
 
@@ -154,10 +183,15 @@ MCU_API_status_t MCU_API_compute_crc8(sfx_u8 *data, sfx_u8 data_size, sfx_u16 po
 
 /*******************************************************************/
 MCU_API_status_t MCU_API_get_ep_id(sfx_u8 *ep_id, sfx_u8 ep_id_size_bytes) {
-	/* To be implemented by the device manufacturer */
 #ifdef ERROR_CODES
 	MCU_API_status_t status = MCU_API_SUCCESS;
 #endif
+
+	size_t len = hex2bin(EP_ID, strlen(EP_ID), ep_id, ep_id_size_bytes);
+	if (len == 0) {
+		status = MCU_API_ERROR;
+	}
+
 	RETURN();
 }
 
@@ -208,6 +242,13 @@ MCU_API_status_t MCU_API_get_initial_pac(sfx_u8 *initial_pac, sfx_u8 initial_pac
 #ifdef ERROR_CODES
 	MCU_API_status_t status = MCU_API_SUCCESS;
 #endif
+
+	size_t len = hex2bin(INITIAL_PAC, strlen(INITIAL_PAC), initial_pac, 
+			initial_pac_size_bytes);
+	if (len == 0) {
+		status = MCU_API_ERROR;
+	}
+
 	RETURN();
 }
 #endif
