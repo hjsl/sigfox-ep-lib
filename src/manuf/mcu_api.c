@@ -51,15 +51,49 @@
 #define INITIAL_PAC CONFIG_SIGFOX_INITIAL_PAC
 #define NAK CONFIG_SIGFOX_NAK
 
+#ifdef TIMER_REQUIRED
+typedef struct {
+	struct k_work_delayable work;
+	MCU_API_timer_t *timer;
+} mcu_api_timer_map_t;
+
+static mcu_api_timer_map_t mcu_api_timer_1_map;
+static mcu_api_timer_map_t mcu_api_timer_2_map;
+
+static void mcu_api_timer_1_expire_fn(struct k_work *work)
+{
+	mcu_api_timer_map_t *mcu_api_timer_map = CONTAINER_OF(work, mcu_api_timer_map_t, work);
+	MCU_API_timer_t *timer = mcu_api_timer_map->timer;
+
+	printk("cplt_cb()\n");
+	timer->cplt_cb();
+}
+
+static void mcu_api_timer_2_expire_fn(struct k_work *work)
+{
+	mcu_api_timer_map_t *mcu_api_timer_map = CONTAINER_OF(work, mcu_api_timer_map_t, work);
+	MCU_API_timer_t *timer = mcu_api_timer_map->timer;
+
+	printk("cplt_cb()\n");
+	timer->cplt_cb();
+}
+#endif
+
 /*** MCU API functions ***/
 
 #if (defined ASYNCHRONOUS) || (defined LOW_LEVEL_OPEN_CLOSE)
 /*******************************************************************/
 MCU_API_status_t MCU_API_open(MCU_API_config_t *mcu_api_config) {
-	/* To be implemented by the device manufacturer */
 #ifdef ERROR_CODES
 	MCU_API_status_t status = MCU_API_SUCCESS;
 #endif
+
+#ifdef TIMER_REQUIRED
+	printk("init timer\n");
+	k_work_init_delayable(&mcu_api_timer_1_map.work, mcu_api_timer_1_expire_fn);
+	k_work_init_delayable(&mcu_api_timer_2_map.work, mcu_api_timer_2_expire_fn);
+#endif
+
 	RETURN();
 }
 #endif
@@ -92,10 +126,19 @@ MCU_API_status_t MCU_API_timer_start(MCU_API_timer_t *timer) {
 #ifdef ERROR_CODES
 	MCU_API_status_t status = MCU_API_SUCCESS;
 #endif
-	//printk("sleep start\n");
-	//k_sleep(K_MSEC(timer->duration_ms));
-	//printk("slep done\n");
-
+printk("timer start instance: %d\n", timer->instance);
+	switch (timer->instance) {
+	case MCU_API_TIMER_1:
+		printk("duration: %d msec\n", timer->duration_ms);
+		k_work_reschedule(&mcu_api_timer_1_map.work, K_MSEC(timer->duration_ms));
+		break;
+	case MCU_API_TIMER_2:
+		k_work_reschedule(&mcu_api_timer_2_map.work, K_MSEC(timer->duration_ms));
+		break;
+	default:
+		status = MCU_API_ERROR;
+	}
+	
 	RETURN();
 }
 #endif
@@ -103,10 +146,21 @@ MCU_API_status_t MCU_API_timer_start(MCU_API_timer_t *timer) {
 #ifdef TIMER_REQUIRED
 /*******************************************************************/
 MCU_API_status_t MCU_API_timer_stop(MCU_API_timer_instance_t timer_instance) {
-	/* To be implemented by the device manufacturer */
 #ifdef ERROR_CODES
 	MCU_API_status_t status = MCU_API_SUCCESS;
 #endif
+printk("timer stop\n");
+	// switch (timer_instance) {
+	// case MCU_API_TIMER_1:
+	// 	k_timer_stop(&mcu_api_timer_1_map.zephyr_timer);
+	// 	break;
+	// case MCU_API_TIMER_2:
+	// 	k_timer_stop(&mcu_api_timer_2_map.zephyr_timer);
+	// 	break;
+	// default:
+	// 	status = MCU_API_ERROR;
+	// }
+
 	RETURN();
 }
 #endif
@@ -141,10 +195,10 @@ MCU_API_status_t MCU_API_aes_128_cbc_encrypt(MCU_API_encryption_data_t *aes_data
 #endif
 
 	uint8_t nak[SIGFOX_EP_KEY_SIZE_BYTES];
-        size_t len = hex2bin(NAK, strlen(NAK), nak, sizeof(nak));
-        if (len == 0) {
-                status = MCU_API_ERROR;
-        }
+	size_t len = hex2bin(NAK, strlen(NAK), nak, sizeof(nak));
+	if (len == 0) {
+			status = MCU_API_ERROR;
+	}
 
 #ifdef PUBLIC_KEY_CAPABLE
     if (aes_data->key == SIGFOX_EP_KEY_PRIVATE) {
