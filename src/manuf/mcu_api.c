@@ -43,43 +43,61 @@
 #include "sigfox_types.h"
 #include "sigfox_error.h"
 
+#include <string.h>
+
 #include <zephyr/kernel.h>
 #include <zephyr/sys/util.h>
-#include <string.h>
+#include <zephyr/settings/settings.h>
 
 #define EP_ID CONFIG_SIGFOX_EP_ID
 #define INITIAL_PAC CONFIG_SIGFOX_INITIAL_PAC
 #define NAK CONFIG_SIGFOX_NAK
 
+/*** MCU API functions ***/
+
 #ifdef TIMER_REQUIRED
-typedef struct {
+struct work_timer {
 	struct k_work_delayable work;
-	MCU_API_timer_t *timer;
-} mcu_api_timer_map_t;
+	MCU_API_timer_t timer;
+};
 
-static mcu_api_timer_map_t mcu_api_timer_1_map;
-static mcu_api_timer_map_t mcu_api_timer_2_map;
+static struct work_timer work_timer_1;
+static struct work_timer work_timer_2;
 
-static void mcu_api_timer_1_expire_fn(struct k_work *work)
+static void work_timer_expire_fn(struct k_work *work)
 {
-	mcu_api_timer_map_t *mcu_api_timer_map = CONTAINER_OF(work, mcu_api_timer_map_t, work);
-	MCU_API_timer_t *timer = mcu_api_timer_map->timer;
-
-	printk("cplt_cb()\n");
-	timer->cplt_cb();
-}
-
-static void mcu_api_timer_2_expire_fn(struct k_work *work)
-{
-	mcu_api_timer_map_t *mcu_api_timer_map = CONTAINER_OF(work, mcu_api_timer_map_t, work);
-	MCU_API_timer_t *timer = mcu_api_timer_map->timer;
-
-	printk("cplt_cb()\n");
-	timer->cplt_cb();
+	struct work_timer *work_timer = CONTAINER_OF(work, struct work_timer, work);
+	work_timer->timer.cplt_cb();
 }
 #endif
 
-/*** MCU API functions ***/
+static sfx_u8 current_nvm_data[SIGFOX_NVM_DATA_SIZE_BYTES] = { 0 };
+
+static int sigfox_settings_set(const char *name, size_t len, settings_read_cb read_cb, void *cb_arg)
+{
+	const char *next;
+	int err;
+
+	if (settings_name_steq(name, "nvm_data", &next) && !next) {
+		if (len != sizeof(current_nvm_data)) {
+			return -EINVAL;
+		}
+
+		err = read_cb(cb_arg, &current_nvm_data, sizeof(current_nvm_data));
+		if (err >= 0) {
+			return 0;
+		}
+
+		return err;
+	}
+
+	return -ENOENT;
+}
+
+struct settings_handler sigfox_settings_handler_config = {
+	.name = "sigfox",
+	.h_set = sigfox_settings_set
+};
 
 #if (defined ASYNCHRONOUS) || (defined LOW_LEVEL_OPEN_CLOSE)
 /*******************************************************************/
@@ -88,12 +106,41 @@ MCU_API_status_t MCU_API_open(MCU_API_config_t *mcu_api_config) {
 	MCU_API_status_t status = MCU_API_SUCCESS;
 #endif
 
+	int err;
+	
+	err = settings_subsys_init();
+	if (err) {
+		printk("settings subsys init err: %d\n", err);
+		status = MCU_API_ERROR;
+		goto errors;
+	} else {
+		printk("settings subsys init ok\n");
+	}
+
+	err = settings_register(&sigfox_settings_handler_config);
+	if (err) {
+		printk("settings register err: %d\n", err);
+		status = MCU_API_ERROR;
+		goto errors;
+	} else {
+		printk("settings register ok\n");
+	}
+
+	err = settings_load();
+	if (err) {
+		printk("settings load err: %d\n", err);
+		status = MCU_API_ERROR;
+		goto errors;
+	} else {
+		printk("settings load ok\n");
+	}
+
 #ifdef TIMER_REQUIRED
-	printk("init timer\n");
-	k_work_init_delayable(&mcu_api_timer_1_map.work, mcu_api_timer_1_expire_fn);
-	k_work_init_delayable(&mcu_api_timer_2_map.work, mcu_api_timer_2_expire_fn);
+	k_work_init_delayable(&work_timer_1.work, work_timer_expire_fn);
+	k_work_init_delayable(&work_timer_2.work, work_timer_expire_fn);
 #endif
 
+errors:
 	RETURN();
 }
 #endif
@@ -126,14 +173,15 @@ MCU_API_status_t MCU_API_timer_start(MCU_API_timer_t *timer) {
 #ifdef ERROR_CODES
 	MCU_API_status_t status = MCU_API_SUCCESS;
 #endif
-printk("timer start instance: %d\n", timer->instance);
+
 	switch (timer->instance) {
 	case MCU_API_TIMER_1:
-		printk("duration: %d msec\n", timer->duration_ms);
-		k_work_reschedule(&mcu_api_timer_1_map.work, K_MSEC(timer->duration_ms));
+		work_timer_1.timer = *timer;
+		k_work_reschedule(&work_timer_1.work, K_MSEC(timer->duration_ms));
 		break;
 	case MCU_API_TIMER_2:
-		k_work_reschedule(&mcu_api_timer_2_map.work, K_MSEC(timer->duration_ms));
+		work_timer_2.timer = *timer;
+		k_work_reschedule(&work_timer_1.work, K_MSEC(timer->duration_ms));
 		break;
 	default:
 		status = MCU_API_ERROR;
@@ -149,17 +197,6 @@ MCU_API_status_t MCU_API_timer_stop(MCU_API_timer_instance_t timer_instance) {
 #ifdef ERROR_CODES
 	MCU_API_status_t status = MCU_API_SUCCESS;
 #endif
-printk("timer stop\n");
-	// switch (timer_instance) {
-	// case MCU_API_TIMER_1:
-	// 	k_timer_stop(&mcu_api_timer_1_map.zephyr_timer);
-	// 	break;
-	// case MCU_API_TIMER_2:
-	// 	k_timer_stop(&mcu_api_timer_2_map.zephyr_timer);
-	// 	break;
-	// default:
-	// 	status = MCU_API_ERROR;
-	// }
 
 	RETURN();
 }
@@ -251,19 +288,34 @@ MCU_API_status_t MCU_API_get_ep_id(sfx_u8 *ep_id, sfx_u8 ep_id_size_bytes) {
 
 /*******************************************************************/
 MCU_API_status_t MCU_API_get_nvm(sfx_u8 *nvm_data, sfx_u8 nvm_data_size_bytes) {
-	/* To be implemented by the device manufacturer */
 #ifdef ERROR_CODES
 	MCU_API_status_t status = MCU_API_SUCCESS;
 #endif
+
+	memcpy(nvm_data, current_nvm_data, nvm_data_size_bytes);
+
+	printk("get_nvm_data: %02x%02x%02x%02x\n", current_nvm_data[0], current_nvm_data[1], current_nvm_data[2], current_nvm_data[3]);
+
 	RETURN();
 }
 
 /*******************************************************************/
 MCU_API_status_t MCU_API_set_nvm(sfx_u8 *nvm_data, sfx_u8 nvm_data_size_bytes) {
-	/* To be implemented by the device manufacturer */
 #ifdef ERROR_CODES
 	MCU_API_status_t status = MCU_API_SUCCESS;
 #endif
+
+	int err;
+
+	memcpy(current_nvm_data, nvm_data, sizeof(current_nvm_data));
+
+	printk("set_nvm_data: %02x%02x%02x%02x\n", current_nvm_data[0], current_nvm_data[1], current_nvm_data[2], current_nvm_data[3]);
+
+	err = settings_save_one("sigfox/nvm_data", nvm_data, nvm_data_size_bytes);
+	if (err) {
+		status = MCU_API_ERROR;
+	}
+
 	RETURN();
 }
 
